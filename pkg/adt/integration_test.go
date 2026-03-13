@@ -77,7 +77,8 @@ func (l *testLogger) Todo(feature string) {
 // requireIntegrationClient returns a configured ADT client, or skips the test
 // if SAP_URL / SAP_USER / SAP_PASSWORD are not set.
 // Logs connection details so every test output shows which system was used.
-func requireIntegrationClient(t *testing.T) *Client {
+// Pass extra Option values to override defaults (e.g. WithTimeout for slow tests).
+func requireIntegrationClient(t *testing.T, extra ...Option) *Client {
 	t.Helper()
 	url := os.Getenv("SAP_URL")
 	user := os.Getenv("SAP_USER")
@@ -107,6 +108,8 @@ func requireIntegrationClient(t *testing.T) *Client {
 	if os.Getenv("SAP_INSECURE") == "true" {
 		opts = append(opts, WithInsecureSkipVerify())
 	}
+	// Extra options are appended last so callers can override defaults.
+	opts = append(opts, extra...)
 
 	return NewClient(url, user, pass, opts...)
 }
@@ -1644,7 +1647,10 @@ func min(a, b int) int {
 // 4. Publish service binding
 // This test cleans up all created objects at the end.
 func TestIntegration_RAP_E2E_OData(t *testing.T) {
-	client := getIntegrationClient(t)
+	// SRVB activation and publish are slow operations — 3 min client timeout.
+	client := requireIntegrationClient(t, WithTimeout(3*time.Minute))
+	log := newTestLogger(t)
+	log.Info("RAP E2E test — client timeout=3min (SRVB activation can take >60s)")
 	ctx := context.Background()
 
 	// Test object names
@@ -1653,20 +1659,23 @@ func TestIntegration_RAP_E2E_OData(t *testing.T) {
 	srvbName := "ZTEST_MCP_SB_FLIGHT"
 	pkg := "$TMP"
 
-	// Cleanup function
-	cleanup := func() {
-		t.Log("Cleaning up test objects...")
-		// Delete in reverse order of creation (no lock needed for $TMP objects)
-		_ = client.DeleteObject(ctx, "/sap/bc/adt/businessservices/bindings/"+strings.ToLower(srvbName), "", "")
-		_ = client.DeleteObject(ctx, "/sap/bc/adt/ddic/srvd/sources/"+strings.ToLower(srvdName), "", "")
-		_ = client.DeleteObject(ctx, "/sap/bc/adt/ddic/ddl/sources/"+strings.ToLower(ddlsName), "", "")
-	}
-
-	// Defer cleanup
-	defer cleanup()
+	// Cleanup via t.Cleanup so it runs even on t.Fatalf (unlike defer+ctx).
+	t.Cleanup(func() {
+		if os.Getenv("SAP_TEST_NO_CLEANUP") == "true" {
+			log.Warn("Cleanup skipped (SAP_TEST_NO_CLEANUP=true)")
+			return
+		}
+		log.Info("Cleanup: deleting RAP objects...")
+		cleanCtx, cleanCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cleanCancel()
+		_ = client.DeleteObject(cleanCtx, "/sap/bc/adt/businessservices/bindings/"+strings.ToLower(srvbName), "", "")
+		_ = client.DeleteObject(cleanCtx, "/sap/bc/adt/ddic/srvd/sources/"+strings.ToLower(srvdName), "", "")
+		_ = client.DeleteObject(cleanCtx, "/sap/bc/adt/ddic/ddl/sources/"+strings.ToLower(ddlsName), "", "")
+		log.Info("Cleanup done")
+	})
 
 	// Step 1: Create CDS View (DDLS)
-	t.Log("Step 1: Creating CDS View (DDLS)...")
+	log.Info("Step 1: Creating CDS View (DDLS)...")
 	ddlsSource := `@AbapCatalog.sqlViewName: 'ZTESTMCPIFLIGHT'
 @AbapCatalog.compiler.compareFilter: true
 @AccessControl.authorizationCheck: #NOT_REQUIRED
@@ -1690,13 +1699,13 @@ define view ZTEST_MCP_I_FLIGHT as select from sflight {
 	if err != nil {
 		t.Fatalf("WriteSource DDLS failed: %v", err)
 	}
-	t.Logf("DDLS result: success=%v, mode=%s, message=%s", ddlsResult.Success, ddlsResult.Mode, ddlsResult.Message)
+	log.Info("DDLS: success=%v mode=%s msg=%s", ddlsResult.Success, ddlsResult.Mode, ddlsResult.Message)
 	if !ddlsResult.Success {
 		t.Fatalf("DDLS creation failed: %s", ddlsResult.Message)
 	}
 
 	// Step 2: Create Service Definition (SRVD)
-	t.Log("Step 2: Creating Service Definition (SRVD)...")
+	log.Info("Step 2: Creating Service Definition (SRVD)...")
 	srvdSource := `@EndUserText.label: 'Flight Service Definition'
 define service ZTEST_MCP_SD_FLIGHT {
   expose ZTEST_MCP_I_FLIGHT as Flights;
@@ -1710,13 +1719,13 @@ define service ZTEST_MCP_SD_FLIGHT {
 	if err != nil {
 		t.Fatalf("WriteSource SRVD failed: %v", err)
 	}
-	t.Logf("SRVD result: success=%v, mode=%s, message=%s", srvdResult.Success, srvdResult.Mode, srvdResult.Message)
+	log.Info("SRVD: success=%v mode=%s msg=%s", srvdResult.Success, srvdResult.Mode, srvdResult.Message)
 	if !srvdResult.Success {
 		t.Fatalf("SRVD creation failed: %s", srvdResult.Message)
 	}
 
 	// Step 3: Create Service Binding (SRVB)
-	t.Log("Step 3: Creating Service Binding (SRVB)...")
+	log.Info("Step 3: Creating Service Binding (SRVB)...")
 	err = client.CreateObject(ctx, CreateObjectOptions{
 		ObjectType:        ObjectTypeSRVB,
 		Name:              srvbName,
@@ -1727,44 +1736,47 @@ define service ZTEST_MCP_SD_FLIGHT {
 		BindingCategory:   "0", // Web API
 	})
 	if err != nil {
-		// SRVB might already exist from previous run
-		if !strings.Contains(err.Error(), "already exists") {
+		// SAP returns "does already exist" (no trailing s) or ExceptionResourceAlreadyExists
+		if !strings.Contains(err.Error(), "already exist") {
 			t.Fatalf("CreateObject SRVB failed: %v", err)
 		}
-		t.Log("SRVB already exists, continuing...")
+		log.Warn("SRVB already exists — continuing")
 	} else {
-		t.Log("SRVB created successfully")
+		log.Info("SRVB created")
 	}
 
-	// Step 4: Activate SRVB
-	t.Log("Step 4: Activating Service Binding...")
+	// Step 4: Activate SRVB — known to be slow (>60s on trial systems).
+	// The client was created with 3-minute timeout specifically for this.
+	log.Info("Step 4: Activating Service Binding (slow — up to 3min)...")
 	srvbURL := "/sap/bc/adt/businessservices/bindings/" + strings.ToLower(srvbName)
 	activationResult, err := client.Activate(ctx, srvbURL, srvbName)
 	if err != nil {
-		t.Logf("Activation warning: %v", err)
+		log.Warn("Activation warning: %v", err)
 	} else {
-		t.Logf("Activation result: success=%v, messages=%v", activationResult.Success, activationResult.Messages)
+		log.Info("Activation: success=%v msgs=%d", activationResult.Success, len(activationResult.Messages))
+		for _, msg := range activationResult.Messages {
+			log.Debug("  msg: %+v", msg)
+		}
 	}
 
 	// Step 5: Publish Service Binding
-	t.Log("Step 5: Publishing Service Binding...")
+	log.Info("Step 5: Publishing Service Binding...")
 	publishResult, err := client.PublishServiceBinding(ctx, srvbName, "0001")
 	if err != nil {
-		// Publishing might fail if already published or system restrictions
-		t.Logf("Publish warning (non-fatal): %v", err)
+		log.Warn("Publish warning (non-fatal): %v", err)
 	} else {
-		t.Logf("Service Binding published successfully! Result: %+v", publishResult)
+		log.Info("Published: %+v", publishResult)
 	}
 
-	// Step 6: Verify SRVB was created
-	t.Log("Step 6: Verifying Service Binding...")
+	// Step 6: Verify SRVB exists (independent of activation success)
+	log.Info("Step 6: Verifying Service Binding...")
 	sb, err := client.GetSRVB(ctx, srvbName)
 	if err != nil {
 		t.Fatalf("GetSRVB verification failed: %v", err)
 	}
-	t.Logf("SRVB verified: name=%s, type=%s, version=%s", sb.Name, sb.Type, sb.BindingVersion)
+	log.Info("SRVB verified: name=%s type=%s version=%s", sb.Name, sb.Type, sb.BindingVersion)
 
-	t.Log("RAP E2E OData test completed successfully!")
+	log.Info("RAP E2E OData test completed")
 }
 
 // TestIntegration_ExternalBreakpoints tests setting, getting, and deleting external breakpoints.
