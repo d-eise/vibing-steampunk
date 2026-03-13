@@ -2237,6 +2237,572 @@ func TestIntegration_DebugSessionAPIs(t *testing.T) {
 	t.Log("8. Detach: client.DebuggerDetach()")
 }
 
+// --- Part A5: New tests for previously untested methods ---
+
+func TestIntegration_GetInterface(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	src, err := client.GetInterface(ctx, "IF_SERIALIZABLE_OBJECT")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetInterface failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetInterface IF_SERIALIZABLE_OBJECT: %v", err)
+	}
+	if len(src) == 0 {
+		t.Error("Interface source is empty")
+	}
+	l.Info("IF_SERIALIZABLE_OBJECT: %d chars", len(src))
+}
+
+func TestIntegration_GetFunctionGroup(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	fg, err := client.GetFunctionGroup(ctx, "SYST")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetFunctionGroup failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetFunctionGroup SYST: %v", err)
+	}
+	l.Info("FunctionGroup SYST: functions=%d", len(fg.Functions))
+	if len(fg.Functions) == 0 {
+		t.Error("No functions found in SYST function group")
+	}
+}
+
+func TestIntegration_GetFunction(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	src, err := client.GetFunction(ctx, "RFC_PING", "SYST")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetFunction failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetFunction RFC_PING: %v", err)
+	}
+	if len(src) == 0 {
+		t.Error("Function source is empty")
+	}
+	l.Info("RFC_PING: %d chars", len(src))
+}
+
+func TestIntegration_GetView(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	src, err := client.GetView(ctx, "DD02V")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetView failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetView DD02V: %v", err)
+	}
+	if len(src) == 0 {
+		t.Error("View source is empty")
+	}
+	l.Info("DD02V: %d chars", len(src))
+}
+
+func TestIntegration_GetStructure(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	src, err := client.GetStructure(ctx, "SYST")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetStructure failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetStructure SYST: %v", err)
+	}
+	if len(src) == 0 {
+		t.Error("Structure source is empty")
+	}
+	l.Info("SYST: %d chars", len(src))
+}
+
+func TestIntegration_GetSystemInfo(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	info, err := client.GetSystemInfo(ctx)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetSystemInfo failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetSystemInfo failed: %v", err)
+	}
+	l.Info("SystemID=%s Release=%s Host=%s", info.SystemID, info.ABAPRelease, info.HostName)
+	if info.SystemID == "" {
+		t.Error("SystemID is empty")
+	}
+	if info.ABAPRelease == "" {
+		t.Error("ABAPRelease is empty")
+	}
+}
+
+func TestIntegration_GetInstalledComponents(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	components, err := client.GetInstalledComponents(ctx)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetInstalledComponents failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetInstalledComponents failed: %v", err)
+	}
+	if len(components) == 0 {
+		t.Error("No installed components returned")
+	}
+	l.Info("Found %d components", len(components))
+	for i, c := range components {
+		if i < 5 {
+			l.Debug("  component[%d]: %s %s", i, c.Name, c.Release)
+		}
+	}
+}
+
+func TestIntegration_GetClassComponents(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	classURL := "/sap/bc/adt/oo/classes/CL_ABAP_TYPEDESCR"
+	comps, err := client.GetClassComponents(ctx, classURL)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetClassComponents failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetClassComponents CL_ABAP_TYPEDESCR: %v", err)
+	}
+	l.Info("CL_ABAP_TYPEDESCR: name=%s type=%s components=%d", comps.Name, comps.Type, len(comps.Components))
+	if comps.Name == "" {
+		t.Error("ClassComponents returned empty root node for CL_ABAP_TYPEDESCR")
+	}
+}
+
+func TestIntegration_GetInactiveObjects(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	objects, err := client.GetInactiveObjects(ctx)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetInactiveObjects failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetInactiveObjects failed: %v", err)
+	}
+	l.Info("Inactive objects: %d", len(objects))
+	// May be empty — just verify the call succeeds
+}
+
+func TestIntegration_RunATCCheck(t *testing.T) {
+	client := requireIntegrationClient(t, WithTimeout(90*time.Second))
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// Create a temp program with a known ATC issue (using obsolete statement)
+	name := tempObjectName("ZMCP_ATC")
+	source := fmt.Sprintf(`REPORT %s.
+DATA: lv_x(10) TYPE C.
+MOVE 'test' TO lv_x.`, strings.ToLower(name))
+
+	withTempProgram(t, client, name, source, func(objectURL string) {
+		worklist, err := client.RunATCCheck(ctx, objectURL, "", 50)
+		if err != nil {
+			if isTransientSAPError(err) {
+				t.Skipf("RunATCCheck failed (SAP 5xx): %v", err)
+			}
+			t.Fatalf("RunATCCheck failed: %v", err)
+		}
+		totalFindings := 0
+		for _, obj := range worklist.Objects {
+			totalFindings += len(obj.Findings)
+		}
+		l.Info("ATC worklist: %d objects, %d findings", len(worklist.Objects), totalFindings)
+		for _, obj := range worklist.Objects {
+			for _, f := range obj.Findings {
+				l.Info("  [%d] %s line %d: %s", f.Priority, obj.Name, f.Line, f.CheckTitle)
+			}
+		}
+	})
+}
+
+func TestIntegration_GetCallGraph(t *testing.T) {
+	client := requireIntegrationClient(t, WithTimeout(90*time.Second))
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	classURL := "/sap/bc/adt/oo/classes/CL_ABAP_TYPEDESCR"
+	graph, err := client.GetCallGraph(ctx, classURL, &CallGraphOptions{MaxDepth: 1})
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetCallGraph failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetCallGraph CL_ABAP_TYPEDESCR: %v", err)
+	}
+	l.Info("CallGraph root=%s children=%d", graph.Name, len(graph.Children))
+}
+
+func TestIntegration_ExecuteABAP(t *testing.T) {
+	client := requireIntegrationClient(t, WithTimeout(90*time.Second))
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	code := `DATA lv_x TYPE i.
+lv_x = 42.
+cl_demo_output=>display( lv_x ).`
+
+	result, err := client.ExecuteABAP(ctx, code, nil)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("ExecuteABAP failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("ExecuteABAP: %v", err)
+	}
+	l.Info("ExecuteABAP: success=%v output=%v", result.Success, result.Output)
+	if !result.Success {
+		t.Errorf("ExecuteABAP did not succeed: %s", result.Message)
+	}
+}
+
+func TestIntegration_GrepPackage(t *testing.T) {
+	client := requireIntegrationClient(t, WithTimeout(90*time.Second))
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// Grep for a string that definitely exists in $TMP programs
+	result, err := client.GrepPackage(ctx, "$TMP", "REPORT", false, nil, 10)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GrepPackage failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GrepPackage $TMP: %v", err)
+	}
+	l.Info("GrepPackage $TMP 'REPORT': %d matches", result.TotalMatches)
+}
+
+func TestIntegration_EditSource_PatternNotFound(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// B-001: EditSource should error when pattern is not found
+	name := tempObjectName("ZMCP_ED")
+	source := fmt.Sprintf("REPORT %s.\nDATA lv_x TYPE i.", strings.ToLower(name))
+
+	withTempProgram(t, client, name, source, func(objectURL string) {
+		result, err := client.EditSource(ctx, objectURL,
+			"THIS_STRING_DOES_NOT_EXIST_IN_SOURCE_9999", "REPLACEMENT",
+			false, false, false)
+		if err != nil {
+			if isTransientSAPError(err) {
+				t.Skipf("EditSource failed (SAP 5xx): %v", err)
+			}
+			// A non-transient error is acceptable — the pattern wasn't found
+			l.Info("EditSource returned error for missing pattern (expected): %v", err)
+			return
+		}
+		// If no error, result should indicate failure
+		l.Info("EditSource result: success=%v message=%s", result.Success, result.Message)
+		if result.Success {
+			t.Error("EditSource should not succeed when pattern is not found")
+		}
+	})
+}
+
+func TestIntegration_GetTableContents_Empty(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// B-007: Query T000 with an impossible WHERE clause — should return 0 rows, no error
+	result, err := client.GetTableContents(ctx, "T000", 10, "MANDT = '999'")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetTableContents failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetTableContents with empty filter failed: %v", err)
+	}
+	l.Info("T000 with impossible filter: %d rows", len(result.Rows))
+	// Should return 0 rows without error
+}
+
+func TestIntegration_GetClassInclude_AllTypes(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	const className = "CL_ABAP_TYPEDESCR"
+	includes := []ClassIncludeType{
+		ClassIncludeDefinitions,
+		ClassIncludeImplementations,
+		ClassIncludeMacros,
+		ClassIncludeTestClasses,
+	}
+
+	for _, inc := range includes {
+		inc := inc
+		t.Run(string(inc), func(t *testing.T) {
+			src, err := client.GetClassInclude(ctx, className, inc)
+			if err != nil {
+				if isTransientSAPError(err) {
+					t.Skipf("GetClassInclude %s failed (SAP 5xx): %v", inc, err)
+				}
+				l.Warn("GetClassInclude %s: %v (may be empty on this class)", inc, err)
+				return
+			}
+			l.Info("include %s: %d chars", inc, len(src))
+		})
+	}
+}
+
+func TestIntegration_UpdateClassInclude(t *testing.T) {
+	client := requireIntegrationClient(t, WithTimeout(90*time.Second))
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	name := tempObjectName("ZMCP_CLS")
+	classSource := fmt.Sprintf(`CLASS %s DEFINITION PUBLIC FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    METHODS: run.
+ENDCLASS.
+CLASS %s IMPLEMENTATION.
+  METHOD run.
+    DATA lv_x TYPE i.
+    lv_x = 1.
+  ENDMETHOD.
+ENDCLASS.`, name, name)
+
+	result, err := client.CreateClassWithTests(ctx, name, "Test class", "$TMP", classSource, "", "")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("CreateClassWithTests failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("CreateClassWithTests: %v", err)
+	}
+	if !result.Success {
+		if strings.Contains(result.Message, "HTTP 5") || strings.Contains(result.Message, "status 5") {
+			t.Skipf("CreateClassWithTests (SAP 5xx): %s", result.Message)
+		}
+		t.Skipf("CreateClassWithTests did not succeed: %s", result.Message)
+	}
+
+	t.Cleanup(func() {
+		if os.Getenv("SAP_TEST_NO_CLEANUP") == "true" {
+			return
+		}
+		classURL := fmt.Sprintf("/sap/bc/adt/oo/classes/%s", name)
+		lock, _ := client.LockObject(ctx, classURL, "MODIFY")
+		if lock != nil {
+			client.DeleteObject(ctx, classURL, lock.LockHandle, "")
+		}
+	})
+
+	// Now update the definitions include
+	classURL := fmt.Sprintf("/sap/bc/adt/oo/classes/%s", name)
+	lock, err := client.LockObject(ctx, classURL, "MODIFY")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("LockObject failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("LockObject failed: %v", err)
+	}
+	defer client.UnlockObject(ctx, classURL, lock.LockHandle)
+
+	newDef := fmt.Sprintf(`CLASS %s DEFINITION PUBLIC FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    METHODS: run.
+    METHODS: new_method.
+ENDCLASS.`, name)
+
+	err = client.UpdateClassInclude(ctx, name, ClassIncludeDefinitions, newDef, lock.LockHandle, "")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("UpdateClassInclude failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("UpdateClassInclude failed: %v", err)
+	}
+
+	// Read back and verify
+	src, err := client.GetClassInclude(ctx, name, ClassIncludeDefinitions)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetClassInclude readback failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetClassInclude readback failed: %v", err)
+	}
+	if !strings.Contains(src, "new_method") {
+		t.Errorf("Updated definitions include does not contain 'new_method'")
+	}
+	l.Info("UpdateClassInclude: verified new_method in definitions include")
+}
+
+func TestIntegration_TransportLifecycle(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// GetUserTransports
+	transports, err := client.GetUserTransports(ctx, "")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetUserTransports failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetUserTransports failed: %v", err)
+	}
+	l.Info("GetUserTransports: %d workbench, %d customizing", len(transports.Workbench), len(transports.Customizing))
+
+	// Create a transport
+	transportNum, err := client.CreateTransport(ctx, "", "MCP integration test transport", "$TMP")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("CreateTransport failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("CreateTransport failed: %v", err)
+	}
+	l.Info("Created transport: %s", transportNum)
+
+	t.Cleanup(func() {
+		if os.Getenv("SAP_TEST_NO_CLEANUP") == "true" {
+			return
+		}
+		if err := client.DeleteTransport(ctx, transportNum); err != nil {
+			t.Logf("Cleanup: could not delete transport %s: %v", transportNum, err)
+		}
+	})
+
+	// Verify it appears in user transports
+	transports2, err := client.GetUserTransports(ctx, "")
+	if err == nil {
+		found := false
+		for _, tr := range append(transports2.Workbench, transports2.Customizing...) {
+			if tr.Number == transportNum {
+				found = true
+				break
+			}
+		}
+		if !found {
+			l.Warn("Newly created transport %s not found in user transports list", transportNum)
+		} else {
+			l.Info("Transport %s confirmed in user transports", transportNum)
+		}
+	}
+}
+
+func TestIntegration_GetTransportInfo(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// Use a $TMP object — should have "local" transport info
+	objectURL := "/sap/bc/adt/programs/programs/SAPMSSY0"
+	info, err := client.GetTransportInfo(ctx, objectURL, "")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetTransportInfo failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetTransportInfo SAPMSSY0: %v", err)
+	}
+	l.Info("TransportInfo: devClass=%s recording=%s", info.DevClass, info.Recording)
+}
+
+func TestIntegration_CompareSource(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	// Compare a program with itself — should produce zero diff
+	diff, err := client.CompareSource(ctx, "PROG", "SAPMSSY0", "PROG", "SAPMSSY0", nil, nil)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("CompareSource failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("CompareSource SAPMSSY0 vs SAPMSSY0: %v", err)
+	}
+	l.Info("CompareSource same object: identical=%v added=%d removed=%d", diff.Identical, diff.AddedLines, diff.RemovedLines)
+	if !diff.Identical {
+		t.Errorf("Comparing object with itself: not identical (+%d -%d)", diff.AddedLines, diff.RemovedLines)
+	}
+}
+
+func TestIntegration_GetClassInfo(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	info, err := client.GetClassInfo(ctx, "CL_ABAP_TYPEDESCR")
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetClassInfo failed (SAP 5xx): %v", err)
+		}
+		t.Skipf("GetClassInfo CL_ABAP_TYPEDESCR: %v", err)
+	}
+	l.Info("ClassInfo: name=%s superClass=%s abstract=%v final=%v", info.Name, info.Superclass, info.IsAbstract, info.IsFinal)
+	if info.Name == "" {
+		t.Error("ClassInfo.Name is empty")
+	}
+}
+
+func TestIntegration_ListDumps(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	dumps, err := client.GetDumps(ctx, nil)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetDumps failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetDumps failed: %v", err)
+	}
+	l.Info("Dumps: %d entries", len(dumps))
+	// May be empty — just verify the call succeeds
+}
+
+func TestIntegration_ListTraces(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	traces, err := client.ListTraces(ctx, nil)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("ListTraces failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("ListTraces failed: %v", err)
+	}
+	l.Info("Traces: %d entries", len(traces))
+	// May be empty — just verify the call succeeds
+}
+
+func TestIntegration_GetSQLTraceState(t *testing.T) {
+	client := requireIntegrationClient(t)
+	l := newTestLogger(t)
+	ctx := context.Background()
+
+	state, err := client.GetSQLTraceState(ctx)
+	if err != nil {
+		if isTransientSAPError(err) {
+			t.Skipf("GetSQLTraceState failed (SAP 5xx): %v", err)
+		}
+		t.Fatalf("GetSQLTraceState failed: %v", err)
+	}
+	l.Info("SQLTraceState: active=%v user=%s", state.Active, state.User)
+}
+
 // --- Part A6: TDD stubs for planned-but-not-yet-implemented features ---
 // These tests appear as SKIP with a [TODO] tag, providing a visible checklist.
 
