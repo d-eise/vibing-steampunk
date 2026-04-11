@@ -127,6 +127,12 @@ func (c *Client) WriteMessageClassTexts(ctx context.Context, name, lang string, 
 
 	name = strings.ToUpper(name)
 	lang = strings.ToUpper(lang)
+	if err := c.checkObjectPackageSafety(ctx, fmt.Sprintf("/sap/bc/adt/messageclass/%s", url.PathEscape(strings.ToLower(name)))); err != nil {
+		return err
+	}
+	if err := c.checkTransportableEdit(transport, "WriteMessageClassTexts"); err != nil {
+		return err
+	}
 
 	// Build XML body
 	mc := MessageClass{
@@ -169,6 +175,12 @@ func (c *Client) WriteDataElementLabels(ctx context.Context, name, lang string, 
 
 	name = strings.ToUpper(name)
 	lang = strings.ToUpper(lang)
+	if err := c.checkObjectPackageSafety(ctx, fmt.Sprintf("/sap/bc/adt/ddic/dataelements/%s", url.PathEscape(name))); err != nil {
+		return err
+	}
+	if err := c.checkTransportableEdit(transport, "WriteDataElementLabels"); err != nil {
+		return err
+	}
 
 	body, err := xml.Marshal(labels)
 	if err != nil {

@@ -154,6 +154,11 @@ func (c *Client) EditSourceWithOptions(ctx context.Context, objectURL, oldString
 		opts = &EditSourceOptions{SyntaxCheck: true}
 	}
 
+	// Check package safety for existing object
+	if err := c.checkObjectPackageSafety(ctx, objectURL); err != nil {
+		return nil, err
+	}
+
 	// Check if transportable edits are allowed when transport is specified
 	if err := c.checkTransportableEdit(opts.Transport, "EditSource"); err != nil {
 		return nil, err

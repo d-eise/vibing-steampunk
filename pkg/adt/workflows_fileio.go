@@ -37,12 +37,23 @@ func (c *Client) RenameObject(ctx context.Context, objType CreatableObjectType, 
 		ObjectType: string(objType),
 	}
 
-	// 1. Get old object source
+	// Check package safety for the old object being renamed
 	oldURL, err := c.buildObjectURL(objType, oldName)
 	if err != nil {
 		return nil, err
 	}
+	if err := c.checkObjectPackageSafety(ctx, oldURL); err != nil {
+		return nil, err
+	}
 
+	// Check package safety for the target package
+	if packageName != "" {
+		if err := c.checkPackageSafety(packageName); err != nil {
+			return nil, err
+		}
+	}
+
+	// 1. Get old object source
 	resp, err := c.transport.Request(ctx, oldURL+"/source/main", &RequestOptions{
 		Method: "GET",
 		Accept: "text/plain",

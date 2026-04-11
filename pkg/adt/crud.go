@@ -117,6 +117,12 @@ func (c *Client) UpdateSource(ctx context.Context, objectSourceURL string, sourc
 	if err := c.checkSafety(OpUpdate, "UpdateSource"); err != nil {
 		return err
 	}
+	if err := c.checkObjectPackageSafety(ctx, objectSourceURL); err != nil {
+		return err
+	}
+	if err := c.checkTransportableEdit(transport, "UpdateSource"); err != nil {
+		return err
+	}
 
 	params := url.Values{}
 	params.Set("lockHandle", lockHandle)
@@ -602,6 +608,12 @@ func (c *Client) DeleteObject(ctx context.Context, objectURL string, lockHandle 
 	if err := c.checkSafety(OpDelete, "DeleteObject"); err != nil {
 		return err
 	}
+	if err := c.checkObjectPackageSafety(ctx, objectURL); err != nil {
+		return err
+	}
+	if err := c.checkTransportableEdit(transport, "DeleteObject"); err != nil {
+		return err
+	}
 
 	params := url.Values{}
 	params.Set("lockHandle", lockHandle)
@@ -712,6 +724,12 @@ func GetClassIncludeSourceURL(className string, includeType ClassIncludeType) st
 // Supports namespaced classes.
 func (c *Client) CreateTestInclude(ctx context.Context, className string, lockHandle string, transport string) error {
 	className = strings.ToUpper(className)
+	if err := c.checkObjectPackageSafety(ctx, GetObjectURL(ObjectTypeClass, className, "")); err != nil {
+		return err
+	}
+	if err := c.checkTransportableEdit(transport, "CreateTestInclude"); err != nil {
+		return err
+	}
 
 	body := `<?xml version="1.0" encoding="UTF-8"?>
 <class:abapClassInclude xmlns:class="http://www.sap.com/adt/oo/classes"
@@ -757,6 +775,12 @@ func (c *Client) GetClassInclude(ctx context.Context, className string, includeT
 // Requires a lock on the parent class.
 func (c *Client) UpdateClassInclude(ctx context.Context, className string, includeType ClassIncludeType, source string, lockHandle string, transport string) error {
 	sourceURL := GetClassIncludeSourceURL(className, includeType)
+	if err := c.checkObjectPackageSafety(ctx, sourceURL); err != nil {
+		return err
+	}
+	if err := c.checkTransportableEdit(transport, "UpdateClassInclude"); err != nil {
+		return err
+	}
 
 	params := url.Values{}
 	params.Set("lockHandle", lockHandle)

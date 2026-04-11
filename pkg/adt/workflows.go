@@ -32,6 +32,11 @@ func (c *Client) WriteProgram(ctx context.Context, programName string, source st
 	objectURL := fmt.Sprintf("/sap/bc/adt/programs/programs/%s", url.PathEscape(programName))
 	sourceURL := objectURL + "/source/main"
 
+	// Check package safety for existing object
+	if err := c.checkObjectPackageSafety(ctx, objectURL); err != nil {
+		return nil, err
+	}
+
 	result := &WriteProgramResult{
 		ProgramName: programName,
 		ObjectURL:   objectURL,
@@ -121,6 +126,11 @@ func (c *Client) WriteClass(ctx context.Context, className string, source string
 	className = strings.ToUpper(className)
 	objectURL := fmt.Sprintf("/sap/bc/adt/oo/classes/%s", url.PathEscape(className))
 	sourceURL := objectURL + "/source/main"
+
+	// Check package safety for existing object
+	if err := c.checkObjectPackageSafety(ctx, objectURL); err != nil {
+		return nil, err
+	}
 
 	result := &WriteClassResult{
 		ClassName: className,
