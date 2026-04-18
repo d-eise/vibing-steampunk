@@ -47,6 +47,8 @@ func TestPistonSceneWithThemeMono(t *testing.T) {
 	}
 }
 
+// TestPistonSceneDefaultFPS checks that passing 0 fps doesn't produce a negative value.
+// Note: ideally PistonScene(0) should fall back to a sensible default (e.g. 24).
 func TestPistonSceneDefaultFPS(t *testing.T) {
 	s := PistonScene(0)
 	if s.FPS() < 0 {
