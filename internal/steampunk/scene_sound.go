@@ -1,36 +1,31 @@
 package steampunk
 
-// SceneWithSound wraps a Scene and adds a cycling SoundEffect overlay
+// SceneWithSound pairs a visual Scene with a SoundEffect.
 type SceneWithSound struct {
-	Scene  *Scene
-	Effect *SoundEffect
-	Col    int
-	tick   int
+	Visual *Scene
+	Sound  *SoundEffect
 }
 
-// NewSceneWithSound creates a SceneWithSound combining a scene and effect
-func NewSceneWithSound(scene *Scene, effect *SoundEffect, col int) *SceneWithSound {
-	return &SceneWithSound{
-		Scene:  scene,
-		Effect: effect,
-		Col:    col,
+// NewSceneWithSound creates a SceneWithSound from a visual scene and sound effect.
+func NewSceneWithSound(visual *Scene, sound *SoundEffect) *SceneWithSound {
+	return &SceneWithSound{Visual: visual, Sound: sound}
+}
+
+// Frame returns the visual and sound frame strings at the given index.
+func (s *SceneWithSound) Frame(i int) (string, string) {
+	return s.Visual.Frame(i), s.Sound.Frame(i)
+}
+
+// Len returns the number of visual frames.
+func (s *SceneWithSound) Len() int {
+	return len(s.Visual.Frames)
+}
+
+// String returns the visual and sound frames joined for display.
+func (s *SceneWithSound) String(i int) string {
+	v, snd := s.Frame(i)
+	if snd == "" {
+		return v
 	}
-}
-
-// Frame returns the current combined frame string and advances the tick
-func (ss *SceneWithSound) Frame() string {
-	base := ss.Scene.String()
-	effectFrame := ss.Effect.Frame(ss.tick)
-	ss.tick++
-	return Overlay(base, effectFrame, ss.Col)
-}
-
-// Reset resets both the scene tick and the sound tick
-func (ss *SceneWithSound) Reset() {
-	ss.tick = 0
-}
-
-// FPS delegates to the underlying scene FPS
-func (ss *SceneWithSound) FPS() int {
-	return ss.Scene.FPS
+	return v + "  " + snd
 }
