@@ -1,27 +1,20 @@
 package steampunk
 
-import "fmt"
-
-// Scene holds a named collection of animation frames
+// Scene holds animation frames and playback metadata.
 type Scene struct {
-	Name   string
 	Frames []string
 	FPS    int
 }
 
-// NewScene creates a new Scene with the given name and frames
-func NewScene(name string, frames []string, fps int) *Scene {
+// NewScene creates a Scene with the given frames and FPS.
+func NewScene(frames []string, fps int) *Scene {
 	if fps <= 0 {
 		fps = 8
 	}
-	return &Scene{
-		Name:   name,
-		Frames: frames,
-		FPS:    fps,
-	}
+	return &Scene{Frames: frames, FPS: fps}
 }
 
-// Frame returns the frame at index i (wrapping around)
+// Frame returns the frame at index i, wrapping around.
 func (s *Scene) Frame(i int) string {
 	if len(s.Frames) == 0 {
 		return ""
@@ -29,20 +22,19 @@ func (s *Scene) Frame(i int) string {
 	return s.Frames[i%len(s.Frames)]
 }
 
-// Len returns the number of frames in the scene
-func (s *Scene) Len() int {
-	return len(s.Frames)
-}
-
-// String returns a human-readable description of the scene
+// String returns the first frame as a string representation.
 func (s *Scene) String() string {
-	return fmt.Sprintf("Scene(%s, %d frames, %d fps)", s.Name, len(s.Frames), s.FPS)
+	return s.Frame(0)
 }
 
-// DefaultScenes returns the built-in scenes
-func DefaultScenes() []*Scene {
-	return []*Scene{
-		NewScene("gear", GearFrames(), 8),
-		NewScene("steam", SteamFrames(), 12),
+// DefaultScenes returns a map of named built-in scenes.
+func DefaultScenes() map[string]*Scene {
+	return map[string]*Scene{
+		"gear":   NewScene(GearFrames(), 8),
+		"steam":  NewScene(SteamFrames(), 6),
+		"piston": PistonScene(),
+		"smoke":  SmokeScene(),
+		"gauge":  GaugeScene(),
+		"valve":  ValveScene(),
 	}
 }
