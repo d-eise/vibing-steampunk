@@ -5,45 +5,47 @@ import (
 	"time"
 )
 
-// Animator cycles through frames and writes them to a writer-like callback
+// Animator drives frame-by-frame playback of a Scene
 type Animator struct {
-	frames   []string
-	Interval time.Duration
-	stop     chan struct{}
+	Scene   *Scene
+	current int
+	stop    chan struct{}
 }
 
-// NewAnimator creates an Animator with the given frames and tick interval
-func NewAnimator(frames []string, interval time.Duration) *Animator {
+// NewAnimator creates an Animator for the given scene
+func NewAnimator(scene *Scene) *Animator {
 	return &Animator{
-		frames:   frames,
-		Interval: interval,
-		stop:     make(chan struct{}),
+		Scene: scene,
+		stop:  make(chan struct{}),
 	}
 }
 
-// Run starts the animation loop, calling render on each frame tick.
-// It blocks until Stop() is called.
-func (a *Animator) Run(render func(frame string)) {
-	ticker := time.NewTicker(a.Interval)
+// Start begins the animation loop, printing frames to stdout
+func (a *Animator) Start() {
+	interval := time.Second / time.Duration(a.Scene.FPS)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	idx := 0
 	for {
 		select {
-		case <-ticker.C:
-			render(a.frames[idx%len(a.frames)])
-			idx++
 		case <-a.stop:
 			return
+		case <-ticker.C:
+			a.PrintFrame()
+			a.current++
 		}
 	}
 }
 
-// Stop signals the animation loop to exit
+// Stop halts the animation loop
 func (a *Animator) Stop() {
 	close(a.stop)
 }
 
-// PrintFrame is a convenience render function that clears the line and prints the frame
-func PrintFrame(frame string) {
-	fmt.Printf("\r%s", frame)
+// PrintFrame prints the current frame to stdout
+func (a *Animator) PrintFrame() {
+	fmt.Print("\033[H\033[2J") // clear screen
+	fmt.Println(Banner())
+	fmt.Println(GearLine())
+	fmt.Println(a.Scene.Frame(a.current))
+	fmt.Println(GearLine())
 }
