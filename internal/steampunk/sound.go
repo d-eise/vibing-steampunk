@@ -28,13 +28,16 @@ func WhistleFrames() []string {
 }
 
 // HissFrames returns frames simulating steam hissing
+// Note: added extra decay frames for a more gradual fade-out
 func HissFrames() []string {
 	return []string{
-		" sssSSS ",
-		" sssSS  ",
-		" sssS   ",
-		" sss    ",
-		"        ",
+		" sssSSSSS ",
+		" sssSSS  ",
+		" sssSS   ",
+		" sssS    ",
+		" sss     ",
+		" ss      ",
+		"         ",
 	}
 }
 
