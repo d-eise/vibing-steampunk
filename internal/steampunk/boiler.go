@@ -39,11 +39,12 @@ func BoilerScene() *Scene {
 }
 
 // BoilerSceneWithTheme returns a Scene animating a boiler with the given theme.
+// Note: bumped default fps from 4 to 6 — looks smoother at higher speed.
 func BoilerSceneWithTheme(theme []string) *Scene {
 	frames := BoilerFrames()
 	colored := make([]string, len(frames))
 	for i, f := range frames {
 		colored[i] = Colorize(f, theme)
 	}
-	return NewScene(colored, 4)
+	return NewScene(colored, 6)
 }
