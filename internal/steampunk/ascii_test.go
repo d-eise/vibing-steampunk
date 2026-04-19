@@ -31,6 +31,14 @@ func TestGearLine(t *testing.T) {
 	}
 }
 
+// TestGearLineZero checks edge case: zero gears should return empty or blank string
+func TestGearLineZero(t *testing.T) {
+	result := GearLine(0)
+	if strings.Count(result, "⚙") != 0 {
+		t.Errorf("GearLine(0) expected 0 gears, got some")
+	}
+}
+
 func TestGearFrames(t *testing.T) {
 	if len(GearFrames) == 0 {
 		t.Error("GearFrames should not be empty")
