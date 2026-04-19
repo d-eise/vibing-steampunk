@@ -76,3 +76,13 @@ func TestMorseFramesEmpty(t *testing.T) {
 		t.Fatal("MorseFrames returned nil for empty input")
 	}
 }
+
+// TestMorseFramesHello verifies a common word encodes to a reasonable number of frames.
+// Added this to get a feel for how verbose the morse encoding is per character.
+func TestMorseFramesHello(t *testing.T) {
+	frames := MorseFrames("HELLO")
+	if len(frames) == 0 {
+		t.Fatal("MorseFrames returned no frames for HELLO")
+	}
+	t.Logf("HELLO encoded to %d frames", len(frames))
+}
