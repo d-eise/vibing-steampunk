@@ -19,7 +19,8 @@ func Overlay(base, effect string, col int) string {
 	return strings.Join(lines, "\n")
 }
 
-// padTo pads a string with spaces to reach length n
+// padTo pads a string with spaces to reach length n.
+// Note: uses byte length, not rune count — may misalign with multibyte chars.
 func padTo(s string, n int) string {
 	if len(s) >= n {
 		return s
