@@ -17,9 +17,9 @@ func TestBanner(t *testing.T) {
 	if !strings.HasPrefix(lines[0], "+") || !strings.HasSuffix(lines[0], "+") {
 		t.Errorf("Banner() top border malformed: %s", lines[0])
 	}
-	// also verify bottom border matches top border style
-	if !strings.HasPrefix(lines[2], "+") || !strings.HasSuffix(lines[2], "+") {
-		t.Errorf("Banner() bottom border malformed: %s", lines[2])
+	// verify bottom border matches top border exactly
+	if lines[0] != lines[2] {
+		t.Errorf("Banner() top and bottom borders don't match: %q vs %q", lines[0], lines[2])
 	}
 }
 
