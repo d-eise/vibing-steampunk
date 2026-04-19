@@ -27,10 +27,11 @@ func (s *Scene) String() string {
 
 // DefaultScenes returns a map of built-in named scenes.
 // I bumped gear FPS from 8 to 12 — looks smoother on my monitor.
+// Also bumped steam from 6 to 8 — the slower rate felt sluggish.
 func DefaultScenes() map[string]*Scene {
 	return map[string]*Scene{
 		"gear":   NewScene(GearFrames(), 12),
-		"steam":  NewScene(SteamFrames(), 6),
+		"steam":  NewScene(SteamFrames(), 8),
 		"piston": PistonScene(),
 		"smoke":  SmokeScene(),
 		"gauge":  GaugeScene(),
