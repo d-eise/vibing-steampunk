@@ -58,3 +58,13 @@ func TestBoilerSceneDefaultFPS(t *testing.T) {
 		t.Errorf("expected positive FPS, got %d", s.FPS)
 	}
 }
+
+// TestBoilerSceneMinFPS checks that the default FPS meets a minimum playable threshold.
+// I noticed there's no lower-bound assertion; anything above 0 passed before.
+func TestBoilerSceneMinFPS(t *testing.T) {
+	const minPlayableFPS = 4
+	s := BoilerScene()
+	if s.FPS < minPlayableFPS {
+		t.Errorf("FPS %d is below minimum playable threshold of %d", s.FPS, minPlayableFPS)
+	}
+}
