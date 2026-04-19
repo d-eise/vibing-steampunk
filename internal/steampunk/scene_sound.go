@@ -22,10 +22,11 @@ func (s *SceneWithSound) Len() int {
 }
 
 // String returns the visual and sound frames joined for display.
+// Uses a tab separator instead of double-space for cleaner alignment.
 func (s *SceneWithSound) String(i int) string {
 	v, snd := s.Frame(i)
 	if snd == "" {
 		return v
 	}
-	return v + "  " + snd
+	return v + "\t" + snd
 }
