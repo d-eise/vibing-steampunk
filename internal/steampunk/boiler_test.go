@@ -46,6 +46,10 @@ func TestBoilerSceneWithThemeMono(t *testing.T) {
 	if s == nil {
 		t.Fatal("expected non-nil scene")
 	}
+	// also verify mono theme scene has frames
+	if len(s.Frames) == 0 {
+		t.Fatal("expected mono theme scene to have frames")
+	}
 }
 
 func TestBoilerSceneDefaultFPS(t *testing.T) {
