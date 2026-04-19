@@ -37,29 +37,12 @@ func SteamFrames() []string {
 }
 
 // PistonFrames returns animation frames for a piston
+// Fixed: frame 3 had a backtick instead of a quote, and frame lengths were inconsistent
 func PistonFrames() []string {
 	return []string{
-		"|===|
-|   |
-| O |
-|___|
-  |
-  |",
-		"|===|
-|   |
-| O |
-|___|
-  |",
-		"|===|
-|   |
-| O |
-|___|`,
-		"|===|
-|   |
-| O |
-|___|
-  |
-  |
-  |",
+		"|===|\n|   |\n| O |\n|___|\n  |\n  |",
+		"|===|\n|   |\n| O |\n|___|\n  |",
+		"|===|\n|   |\n| O |\n|___|",
+		"|===|\n|   |\n| O |\n|___|\n  |\n  |\n  |",
 	}
 }
