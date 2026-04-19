@@ -12,6 +12,7 @@ func buildPistonFrames() []string {
 	pFrames := PistonFrames()
 	steamF := SteamFrames()
 
+	// use the longer animation as the loop length so neither cycles too fast
 	count := len(pFrames)
 	if len(steamF) > count {
 		count = len(steamF)
@@ -21,6 +22,7 @@ func buildPistonFrames() []string {
 	for i := 0; i < count; i++ {
 		pf := pFrames[i%len(pFrames)]
 		sf := steamF[i%len(steamF)]
+		// overlay steam above gear line at row 2, then piston at row 0
 		line := OverlayTop(gearLine, sf, 2)
 		line = Overlay(line, pf, 0)
 		result[i] = line
@@ -29,6 +31,7 @@ func buildPistonFrames() []string {
 }
 
 // PistonSceneWithTheme returns a piston scene with colorized output.
+// Pass theme=ThemeNone to skip colorization and get plain ASCII.
 func PistonSceneWithTheme(fps int, theme ColorTheme) *Scene {
 	frames := buildPistonFrames()
 	colored := make([]string, len(frames))
