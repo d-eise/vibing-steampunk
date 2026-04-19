@@ -26,13 +26,15 @@ func SmokeSceneWithTheme(theme map[string]string) *Scene {
 	return NewScene(colored)
 }
 
-// SmokePlumeFrames returns multi-line ASCII frames of a rising smoke plume
+// SmokePlumeFrames returns multi-line ASCII frames of a rising smoke plume.
+// The plume cycles through 5 frames instead of 4 for a smoother animation loop.
 func SmokePlumeFrames() []string {
 	return []string{
 		"  ~  \n )   )\n( ~ (",
 		" ~ ~ \n( ) ) \n ) ~ )",
 		"  ~  \n ~ ~ \n( ) (",
 		" ~ ~ \n)   (\n ~ ~ ",
+		"  ~  \n ) ~ )\n( ( (",
 	}
 }
 
