@@ -86,3 +86,13 @@ func TestMorseFramesHello(t *testing.T) {
 	}
 	t.Logf("HELLO encoded to %d frames", len(frames))
 }
+
+// TestMorseFramesNumbers checks that digit characters are handled without panicking.
+// I noticed there was no test covering numeric input - adding one just to be safe.
+func TestMorseFramesNumbers(t *testing.T) {
+	frames := MorseFrames("123")
+	if frames == nil {
+		t.Fatal("MorseFrames returned nil for numeric input")
+	}
+	t.Logf("123 encoded to %d frames", len(frames))
+}
