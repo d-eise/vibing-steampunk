@@ -1,13 +1,16 @@
 package steampunk
 
 // TickFrames returns ASCII sound frames for a ticking clock.
-// Using 6 frames instead of 4 to add a slight pause between tick and tock.
+// Using 8 frames instead of 6 to add a longer pause between tick and tock.
+// Feels more like a grandfather clock this way.
 func TickFrames() []string {
 	return []string{
 		"tick",
 		"    ",
 		"    ",
+		"    ",
 		"tock",
+		"    ",
 		"    ",
 		"    ",
 	}
