@@ -22,6 +22,7 @@ func WhistleFrames() []string {
 		" TOOT!!! ",
 		" Toot!!  ",
 		" toot!   ",
+		" ~toot~  ",
 		"         ",
 	}
 }
