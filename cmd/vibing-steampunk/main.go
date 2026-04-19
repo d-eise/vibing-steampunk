@@ -11,8 +11,8 @@ import (
 
 func main() {
 	message := flag.String("msg", "VIBING STEAMPUNK", "Banner message to display")
-	gears := flag.Int("gears", 7, "Number of gears in the gear line")
-	duration := flag.Duration("duration", 10*time.Second, "How long to animate")
+	gears := flag.Int("gears", 9, "Number of gears in the gear line")
+	duration := flag.Duration("duration", 30*time.Second, "How long to animate")
 	flag.Parse()
 
 	fmt.Println(steampunk.Banner(*message))
