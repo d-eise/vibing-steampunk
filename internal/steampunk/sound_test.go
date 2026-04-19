@@ -41,7 +41,8 @@ func TestNewSoundEffect(t *testing.T) {
 func TestSoundEffectFrame(t *testing.T) {
 	se := NewSoundEffect("chug", ChuggingFrames())
 	n := len(se.Frames)
-	for i := 0; i < n*2; i++ {
+	// iterate 3 full cycles to better exercise wrap-around behaviour
+	for i := 0; i < n*3; i++ {
 		f := se.Frame(i)
 		if f == "" && se.Frames[i%n] != "" {
 			t.Errorf("Frame(%d) returned empty unexpectedly", i)
