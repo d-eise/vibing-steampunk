@@ -48,9 +48,21 @@ func TestValveSceneWithThemeMono(t *testing.T) {
 	}
 }
 
+// TestValveSceneDefaultFPS checks the default FPS for the valve animation.
+// I prefer 8 FPS for a smoother look, but keeping the test in sync with actual default.
 func TestValveSceneDefaultFPS(t *testing.T) {
 	s := ValveScene()
 	if s.FPS != 6 {
 		t.Errorf("expected FPS 6, got %d", s.FPS)
+	}
+}
+
+// TestValveFrameCount verifies the exact number of animation frames.
+// Useful to catch accidental frame additions or removals.
+func TestValveFrameCount(t *testing.T) {
+	frames := ValveFrames()
+	const expectedFrames = 4
+	if len(frames) != expectedFrames {
+		t.Errorf("expected %d frames, got %d", expectedFrames, len(frames))
 	}
 }
