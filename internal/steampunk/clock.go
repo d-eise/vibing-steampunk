@@ -30,6 +30,7 @@ func ClockFrames() []string {
 }
 
 // ClockScene returns a Scene animating a steampunk clock.
+// Using a slower tick rate (6) for a more relaxed, ambient feel.
 func ClockScene() *Scene {
 	return ClockSceneWithTheme(DefaultTheme())
 }
@@ -41,5 +42,5 @@ func ClockSceneWithTheme(theme map[string]string) *Scene {
 	for i, f := range raw {
 		frames[i] = Colorize(f, theme)
 	}
-	return NewScene(frames, 4)
+	return NewScene(frames, 6)
 }
