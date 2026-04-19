@@ -62,3 +62,15 @@ func TestNewSmokePlumeScene(t *testing.T) {
 		t.Errorf("expected %d frames, got %d", len(SmokePlumeFrames()), s.Len())
 	}
 }
+
+// TestSmokePlumeSceneFrameCount verifies the plume scene has more than one frame,
+// ensuring animation is actually possible (not a static single-frame scene).
+func TestSmokePlumeSceneFrameCount(t *testing.T) {
+	s := NewSmokePlumeScene()
+	if s == nil {
+		t.Fatal("expected non-nil plume scene")
+	}
+	if s.Len() < 2 {
+		t.Errorf("expected at least 2 frames for animation, got %d", s.Len())
+	}
+}
