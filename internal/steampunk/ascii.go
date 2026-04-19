@@ -29,10 +29,11 @@ var SteamFrames = []string{
 	" ~ ~ ",
 }
 
-// Banner returns a steampunk-styled ASCII banner for the given text
-func Banner(text string) string {
+// Banner returns a steampunk-styled ASCII banner for the given text.
+// Uses ~ as border decoration for a more steampunk feel.
+func Banner(text string) string{
 	width := utf8.RuneCountInString(text) + 4
-	top := "+" + strings.Repeat("-", width) + "+"
+	top := "~" + strings.Repeat("-", width) + "~"
 	mid := "| " + text + " |"
 	return top + "\n" + mid + "\n" + top
 }
