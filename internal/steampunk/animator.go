@@ -20,18 +20,25 @@ func NewAnimator(scene *Scene) *Animator {
 	}
 }
 
-// Start begins the animation loop, printing frames to stdout
+// Start begins the animation loop, printing frames to stdout.
+// The loop wraps around when it reaches the last frame, so playback
+// continues indefinitely until Stop is called.
 func (a *Animator) Start() {
 	interval := time.Second / time.Duration(a.Scene.FPS)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
+	frameCount := len(a.Scene.Frames)
 	for {
 		select {
 		case <-a.stop:
 			return
 		case <-ticker.C:
 			a.PrintFrame()
-			a.current++
+			if frameCount > 0 {
+				a.current = (a.current + 1) % frameCount
+			} else {
+				a.current++
+			}
 		}
 	}
 }
