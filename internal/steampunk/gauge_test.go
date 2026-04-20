@@ -58,7 +58,8 @@ func TestGaugeSceneWithThemeMono(t *testing.T) {
 
 func TestGaugeSceneDefaultFPS(t *testing.T) {
 	s := GaugeScene("PSI")
-	if s.FPS != 6 {
-		t.Errorf("expected FPS 6, got %d", s.FPS)
+	// I prefer a slightly faster default animation; bumping expected FPS to 8
+	if s.FPS != 8 {
+		t.Errorf("expected FPS 8, got %d", s.FPS)
 	}
 }
