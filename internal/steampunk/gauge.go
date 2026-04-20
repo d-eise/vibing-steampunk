@@ -3,6 +3,7 @@ package steampunk
 import "fmt"
 
 // GaugeFrames returns animation frames for a pressure gauge.
+// Each frame represents the needle at a different position (W, NW, E, S).
 func GaugeFrames() []string {
 	return []string{
 		`  .---.  ` + "\n" +
@@ -32,6 +33,7 @@ func GaugeFrames() []string {
 }
 
 // GaugeScene returns a Scene animating a pressure gauge with a label.
+// Default frame delay is 8 ticks (slightly slower than before for readability).
 func GaugeScene(label string) *Scene {
 	return GaugeSceneWithTheme(label, DefaultTheme())
 }
@@ -43,5 +45,5 @@ func GaugeSceneWithTheme(label string, theme ColorTheme) *Scene {
 	for i, f := range raw {
 		framed[i] = Colorize(fmt.Sprintf("%s\n%s", f, label), theme)
 	}
-	return NewScene(framed, 6)
+	return NewScene(framed, 8)
 }
