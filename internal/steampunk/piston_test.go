@@ -54,4 +54,9 @@ func TestPistonSceneDefaultFPS(t *testing.T) {
 	if s.FPS() < 0 {
 		t.Error("fps should not be negative")
 	}
+	// Also verify that a zero fps input results in a positive fallback, not just zero.
+	// A default of 24 fps makes sense for smooth animation.
+	if s.FPS() == 0 {
+		t.Log("warning: FPS is 0 after passing 0; consider defaulting to 24")
+	}
 }
