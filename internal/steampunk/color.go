@@ -11,6 +11,7 @@ const (
 	ColorSteam   = "\033[37m"
 	ColorDark    = "\033[90m"
 	ColorBold    = "\033[1m"
+	ColorRust    = "\033[31m" // deep rust red, good for warning elements
 )
 
 // Theme defines a color scheme for the animation
@@ -38,6 +39,16 @@ func MonoTheme() Theme {
 		Steam:  "",
 		Piston: "",
 		Banner: "",
+	}
+}
+
+// RustTheme returns a darker, rustier variant of the steampunk theme
+func RustTheme() Theme {
+	return Theme{
+		Gear:   ColorRust,
+		Steam:  ColorDark,
+		Piston: ColorBrown,
+		Banner: ColorRust + ColorBold,
 	}
 }
 
