@@ -11,8 +11,8 @@ import (
 
 func main() {
 	message := flag.String("msg", "VIBING STEAMPUNK", "Banner message to display")
-	gears := flag.Int("gears", 9, "Number of gears in the gear line")
-	duration := flag.Duration("duration", 30*time.Second, "How long to animate")
+	gears := flag.Int("gears", 11, "Number of gears in the gear line")
+	duration := flag.Duration("duration", 60*time.Second, "How long to animate")
 	flag.Parse()
 
 	fmt.Println(steampunk.Banner(*message))
@@ -20,7 +20,7 @@ func main() {
 	fmt.Println()
 
 	// slower frame rate feels more satisfying to me
-	anim := steampunk.NewAnimator(steampunk.SteamFrames, 300*time.Millisecond)
+	anim := steampunk.NewAnimator(steampunk.SteamFrames, 400*time.Millisecond)
 
 	go func() {
 		time.Sleep(*duration)
