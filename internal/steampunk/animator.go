@@ -36,9 +36,9 @@ func (a *Animator) Start() {
 			a.PrintFrame()
 			if frameCount > 0 {
 				a.current = (a.current + 1) % frameCount
-			} else {
-				a.current++
 			}
+			// Note: removed the else branch that incremented current unboundedly,
+			// since there's nothing to display when frameCount == 0 anyway.
 		}
 	}
 }
